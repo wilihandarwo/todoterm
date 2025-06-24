@@ -1,0 +1,44 @@
+{
+  "name": "todoterm",
+  "version": "1.0.0",
+  "description": "Simple CLI todo list manager",
+  "main": "index.js",
+  "bin": {
+    "todoterm": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "cli",
+    "todo",
+    "task-manager",
+    "productivity",
+    "terminal"
+  ],
+  "author": "Fadli Wilihandarwo",
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wilihandarwo/todoterm.git"
+  },
+  "homepage": "https://github.com/wilihandarwo/todoterm#readme",
+  "bugs": {
+    "url": "https://github.com/wilihandarwo/todoterm/issues"
+  },
+  "dependencies": {
+    "boxen": "^5.1.2",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.0",
+    "figlet": "^1.7.0",
+    "gradient-string": "^1.2.0",
+    "inquirer": "^8.2.6",
+    "ora": "^5.4.1"
+  }
+}
