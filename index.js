@@ -646,7 +646,9 @@ async function interactiveMode() {
       addTodo(task);
       break;
     case 'done':
-      const todos = readTodos();
+      const data = readTodos();
+      const currentProject = data.projects[data.settings.currentProject];
+      const todos = currentProject.todos;
       if (todos.length === 0) {
         console.log(gradients.warning('\nNo todos to mark as done!'));
         break;
@@ -665,8 +667,10 @@ async function interactiveMode() {
       markDone(todoIndex);
       break;
     case 'remove':
-      const todosList = readTodos();
-      if (todosList.length === 0) {
+      const dataForRemove = readTodos();
+      const currentProjectForRemove = dataForRemove.projects[dataForRemove.settings.currentProject];
+      const todosForRemove = currentProjectForRemove.todos;
+      if (todosForRemove.length === 0) {
         console.log(gradients.warning('\nNo todos to remove!'));
         break;
       }
@@ -675,7 +679,7 @@ async function interactiveMode() {
           type: 'list',
           name: 'removeIndex',
           message: gradients.sunset('Which todo to remove?'),
-          choices: todosList.map((todo, i) => ({
+          choices: todosForRemove.map((todo, i) => ({
             name: `${i + 1}. ${todo.task}`,
             value: i + 1
           }))
@@ -701,8 +705,8 @@ async function interactiveMode() {
       addProject(projectName);
       break;
     case 'project-switch':
-      const data = readTodos();
-      const projectChoices = Object.values(data.projects).map(project => ({
+      const dataForSwitch = readTodos();
+      const projectChoices = Object.values(dataForSwitch.projects).map(project => ({
         name: `${project.name} (${project.id})`,
         value: project.id
       }));
@@ -717,8 +721,8 @@ async function interactiveMode() {
       switchProject(projectId);
       break;
     case 'project-remove':
-      const dataForRemove = readTodos();
-      const removableProjects = Object.values(dataForRemove.projects)
+      const dataForRemoveProject = readTodos();
+      const removableProjects = Object.values(dataForRemoveProject.projects)
         .filter(project => project.id !== 'inbox')
         .map(project => ({
           name: `${project.name} (${project.id})`,
