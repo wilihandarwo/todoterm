@@ -17,6 +17,25 @@ const program = new Command();
 // Data file path
 const TODO_FILE = path.join(os.homedir(), '.todoterm.json');
 
+// Default data structure
+const DEFAULT_DATA = {
+  version: '2.0.0',
+  projects: {
+    inbox: {
+      id: 'inbox',
+      name: 'Inbox',
+      description: 'General todos not assigned to any project',
+      color: 'gray',
+      createdAt: new Date().toISOString(),
+      todos: []
+    }
+  },
+  settings: {
+    currentProject: 'inbox',
+    showProjects: true
+  }
+};
+
 // Beautiful gradient themes
 const gradients = {
   primary: gradient(['#ff6b6b', '#4ecdc4']),
@@ -46,25 +65,69 @@ const icons = {
 // Initialize data file if it doesn't exist
 function initDataFile() {
   if (!fs.existsSync(TODO_FILE)) {
-    fs.writeFileSync(TODO_FILE, JSON.stringify([], null, 2));
+    fs.writeFileSync(TODO_FILE, JSON.stringify(DEFAULT_DATA, null, 2));
   }
 }
 
-// Read todos from file
+// Read data from file (migrates old format if needed)
 function readTodos() {
   initDataFile();
   const data = fs.readFileSync(TODO_FILE, 'utf8');
-  return JSON.parse(data);
+  const parsed = JSON.parse(data);
+  
+  // Migrate old format to new format
+  if (Array.isArray(parsed)) {
+    const migratedData = {
+      ...DEFAULT_DATA,
+      projects: {
+        ...DEFAULT_DATA.projects,
+        inbox: {
+          ...DEFAULT_DATA.projects.inbox,
+          todos: parsed
+        }
+      }
+    };
+    writeTodos(migratedData);
+    return migratedData;
+  }
+  
+  // Ensure structure is complete
+  if (!parsed.projects) parsed.projects = DEFAULT_DATA.projects;
+  if (!parsed.settings) parsed.settings = DEFAULT_DATA.settings;
+  if (!parsed.projects.inbox) parsed.projects.inbox = DEFAULT_DATA.projects.inbox;
+  
+  return parsed;
 }
 
-// Write todos to file
-function writeTodos(todos) {
-  fs.writeFileSync(TODO_FILE, JSON.stringify(todos, null, 2));
+// Write data to file
+function writeTodos(data) {
+  fs.writeFileSync(TODO_FILE, JSON.stringify(data, null, 2));
 }
 
 // Generate unique ID
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+// Generate human-friendly project ID from name
+function generateProjectId(name, existingProjects = {}) {
+  // Convert to lowercase, replace spaces and special chars with hyphens
+  let baseId = name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '') // Remove special characters
+    .trim()
+    .replace(/\s+/g, '-'); // Replace spaces with hyphens
+  
+  // If the ID already exists, append a number
+  let finalId = baseId;
+  let counter = 1;
+  
+  while (existingProjects[finalId]) {
+    finalId = `${baseId}-${counter}`;
+    counter++;
+  }
+  
+  return finalId;
 }
 
 // Show beautiful header
@@ -79,20 +142,12 @@ function showHeader() {
   });
   
   console.log(gradients.primary(title));
+  console.log();
   
-  const subtitle = boxen(
-    gradients.sunset('✨ Beautiful Terminal Todo Manager ✨\n') +
-    chalk.gray('Made with ') + chalk.red('♥') + chalk.gray(' by Fadli Wilihandarwo'),
-    {
-      padding: 1,
-      margin: 1,
-      borderStyle: 'round',
-      borderColor: 'cyan',
-      backgroundColor: '#1a1a2e'
-    }
-  );
-  
-  console.log(subtitle);
+  // Clean subtitle without box
+  console.log('  ' + gradients.sunset('✨ Beautiful Terminal Todo Manager ✨'));
+  console.log('  ' + chalk.gray('Made with ') + chalk.red('♥') + chalk.gray(' by Fadli Wilihandarwo'));
+  console.log();
 }
 
 // Show loading animation
@@ -108,11 +163,18 @@ function showLoading(text) {
 }
 
 // Add a new todo with beautiful animation
-function addTodo(task) {
+function addTodo(task, options = {}) {
   const spinner = ora(gradients.info('Adding your todo...')).start();
   
   setTimeout(() => {
-    const todos = readTodos();
+    const data = readTodos();
+    const targetProject = options.project || data.settings.currentProject || 'inbox';
+    
+    if (!data.projects[targetProject]) {
+      spinner.fail(chalk.red('Project not found!'));
+      return;
+    }
+    
     const newTodo = {
       id: generateId(),
       task: task,
@@ -121,47 +183,37 @@ function addTodo(task) {
       priority: 'medium'
     };
     
-    todos.push(newTodo);
-    writeTodos(todos);
+    data.projects[targetProject].todos.push(newTodo);
+    writeTodos(data);
     
     spinner.succeed();
     
-    const successBox = boxen(
-      gradients.success(`${icons.add} Successfully added!\n`) +
-      chalk.white(`"${task}"`),
-      {
-        padding: 1,
-        margin: 1,
-        borderStyle: 'round',
-        borderColor: 'green',
-        backgroundColor: '#0f3460'
-      }
-    );
-    
-    console.log(successBox);
+    const projectName = data.projects[targetProject].name;
+    console.log();
+    console.log('  ' + gradients.success(`${icons.add} Successfully added to ${projectName}!`));
+    console.log('  ' + chalk.white(`"${task}"`));
+    console.log();
   }, 1000);
 }
 
-// List all todos with beautiful table
+// List todos from current project with beautiful table
 function listTodos() {
   showHeader();
   
-  const todos = readTodos();
+  const data = readTodos();
+  const currentProject = data.projects[data.settings.currentProject];
+  const todos = currentProject.todos;
+  
+  // Show current project info - clean and minimal
+  console.log('  ' + gradients.ocean(`📂 Current Project: ${currentProject.name}`));
+  console.log('  ' + chalk.gray(`${todos.length} tasks total`));
+  console.log();
   
   if (todos.length === 0) {
-    const emptyBox = boxen(
-      gradients.warning(`${icons.star} No todos yet!\n`) +
-      chalk.gray('Start your productive journey:\n') +
-      gradients.info('todoterm add "Your first task"'),
-      {
-        padding: 2,
-        margin: 1,
-        borderStyle: 'double',
-        borderColor: 'yellow',
-        backgroundColor: '#2d3436'
-      }
-    );
-    console.log(emptyBox);
+    console.log('  ' + gradients.warning(`${icons.star} No todos in this project yet!`));
+    console.log('  ' + chalk.gray('Start your productive journey:'));
+    console.log('  ' + gradients.info('todoterm add "Your first task"'));
+    console.log();
     return;
   }
   
@@ -176,7 +228,7 @@ function listTodos() {
       head: [],
       border: ['cyan']
     },
-    colWidths: [10, 50, 20]
+    colWidths: [15, 45, 20]
   });
   
   todos.forEach((todo, index) => {
@@ -201,45 +253,42 @@ function listTodos() {
   });
   
   console.log(table.toString());
+  console.log();
   
-  // Show statistics
+  // Show statistics - clean and minimal
   const completed = todos.filter(t => t.completed).length;
   const pending = todos.length - completed;
   
-  const statsBox = boxen(
-    gradients.info(`${icons.rocket} Statistics\n`) +
-    chalk.white(`Total: ${todos.length} │ `) +
-    chalk.green(`Completed: ${completed} │ `) +
-    chalk.yellow(`Pending: ${pending}`),
-    {
-      padding: 1,
-      margin: 1,
-      borderStyle: 'round',
-      borderColor: 'blue',
-      backgroundColor: '#2d3436'
-    }
-  );
+  console.log('  ' + gradients.info(`${icons.rocket} Statistics`));
+  console.log('  ' + chalk.white(`Total: ${todos.length} │ `) + chalk.green(`Completed: ${completed} │ `) + chalk.yellow(`Pending: ${pending}`));
+  console.log();
   
-  console.log(statsBox);
+  // Show contextual command hints
+  console.log('  ' + chalk.dim('💡 Quick commands:'));
+  console.log('  ' + chalk.dim('   todoterm add "task"     - Add new todo'));
+  if (todos.length > 0) {
+    console.log('  ' + chalk.dim('   todoterm done <num>     - Mark todo as done'));
+    console.log('  ' + chalk.dim('   todoterm rm <num>      - Remove todo'));
+  }
+  console.log('  ' + chalk.dim('   todoterm projects      - View all projects'));
+  console.log('  ' + chalk.dim('   todoterm ps <project>  - Switch project'));
+  console.log();
+  console.log('  ' + chalk.dim('ℹ️  Type "todoterm" for interactive menu or "todoterm --help" for all commands'));
+  console.log();
 }
 
 // Mark todo as done with celebration
 function markDone(index) {
-  const todos = readTodos();
+  const data = readTodos();
+  const currentProject = data.projects[data.settings.currentProject];
+  const todos = currentProject.todos;
   const todoIndex = parseInt(index) - 1;
   
   if (todoIndex < 0 || todoIndex >= todos.length) {
-    const errorBox = boxen(
-      chalk.red(`${icons.remove} Invalid todo number!\n`) +
-      chalk.gray(`Please use a number between 1 and ${todos.length}`),
-      {
-        padding: 1,
-        margin: 1,
-        borderStyle: 'round',
-        borderColor: 'red'
-      }
-    );
-    console.log(errorBox);
+    console.log();
+    console.log('  ' + chalk.red(`${icons.remove} Invalid todo number!`));
+    console.log('  ' + chalk.gray(`Please use a number between 1 and ${todos.length}`));
+    console.log();
     return;
   }
   
@@ -248,33 +297,26 @@ function markDone(index) {
   const spinner = ora(gradients.success('Marking as complete...')).start();
   
   setTimeout(() => {
-    todos[todoIndex].completed = true;
-    todos[todoIndex].completedAt = new Date().toISOString();
-    writeTodos(todos);
+    currentProject.todos[todoIndex].completed = true;
+    currentProject.todos[todoIndex].completedAt = new Date().toISOString();
+    writeTodos(data);
     
     spinner.succeed();
     
-    // Celebration animation
-    const celebrationBox = boxen(
-      gradients.success(`${icons.success} Awesome! Task completed!\n`) +
-      chalk.white(`"${task}"\n`) +
-      gradients.purple(`${icons.fire} You're on fire! Keep going! ${icons.fire}`),
-      {
-        padding: 2,
-        margin: 1,
-        borderStyle: 'double',
-        borderColor: 'green',
-        backgroundColor: '#0f3460'
-      }
-    );
-    
-    console.log(celebrationBox);
+    // Celebration message - clean and minimal
+    console.log();
+    console.log('  ' + gradients.success(`${icons.success} Awesome! Task completed!`));
+    console.log('  ' + chalk.white(`"${task}"`));
+    console.log('  ' + gradients.purple(`${icons.fire} You're on fire! Keep going! ${icons.fire}`));
+    console.log();
   }, 800);
 }
 
 // Remove a todo with confirmation
 async function removeTodo(index) {
-  const todos = readTodos();
+  const data = readTodos();
+  const currentProject = data.projects[data.settings.currentProject];
+  const todos = currentProject.todos;
   const todoIndex = parseInt(index) - 1;
   
   if (todoIndex < 0 || todoIndex >= todos.length) {
@@ -307,8 +349,8 @@ async function removeTodo(index) {
     const spinner = ora(gradients.warning('Removing todo...')).start();
     
     setTimeout(() => {
-      todos.splice(todoIndex, 1);
-      writeTodos(todos);
+      currentProject.todos.splice(todoIndex, 1);
+      writeTodos(data);
       
       spinner.succeed();
       
@@ -332,12 +374,14 @@ async function removeTodo(index) {
 
 // Clear all todos with dramatic confirmation
 async function clearTodos() {
-  const todos = readTodos();
+  const data = readTodos();
+  const currentProject = data.projects[data.settings.currentProject];
+  const todos = currentProject.todos;
   
   if (todos.length === 0) {
     const emptyBox = boxen(
       gradients.info(`${icons.star} Nothing to clear!\n`) +
-      chalk.gray('Your todo list is already empty.'),
+      chalk.gray(`${currentProject.name} is already empty.`),
       {
         padding: 1,
         margin: 1,
@@ -353,7 +397,7 @@ async function clearTodos() {
     {
       type: 'confirm',
       name: 'confirmed',
-      message: gradients.warning(`${icons.clear} Are you sure you want to clear ALL ${todos.length} todos? This cannot be undone!`),
+      message: gradients.warning(`${icons.clear} Are you sure you want to clear ALL ${todos.length} todos from ${currentProject.name}? This cannot be undone!`),
       default: false
     }
   ]);
@@ -362,12 +406,13 @@ async function clearTodos() {
     const spinner = ora(gradients.warning('Clearing all todos...')).start();
     
     setTimeout(() => {
-      writeTodos([]);
+      currentProject.todos = [];
+      writeTodos(data);
       
       spinner.succeed();
       
       const clearBox = boxen(
-        gradients.sunset(`${icons.clear} All todos cleared!\n`) +
+        gradients.sunset(`${icons.clear} All todos cleared from ${currentProject.name}!\n`) +
         chalk.gray('Ready for a fresh start!'),
         {
           padding: 2,
@@ -385,11 +430,112 @@ async function clearTodos() {
   }
 }
 
+// Project management functions
+function addProject(name) {
+  const data = readTodos() || DEFAULT_DATA;
+  const id = generateProjectId(name, data.projects);
+
+  data.projects[id] = {
+    id,
+    name,
+    description: '',
+    color: 'gray',
+    createdAt: new Date().toISOString(),
+    todos: []
+  };
+
+  writeTodos(data);
+  
+  console.log();
+  console.log('  ' + gradients.success(`${icons.add} Project Created!`));
+  console.log('  ' + chalk.white(`"${name}"`));
+  console.log('  ' + chalk.gray(`ID: ${id}`));
+  console.log();
+}
+
+function removeProject(id) {
+  const data = readTodos() || DEFAULT_DATA;
+
+  if (id === 'inbox' || !data.projects[id]) {
+    console.log(chalk.red(`${icons.remove} Cannot remove inbox or non-existent project!`));
+    return;
+  }
+
+  const projectName = data.projects[id].name;
+  delete data.projects[id];
+  
+  // If current project was deleted, switch to inbox
+  if (data.settings.currentProject === id) {
+    data.settings.currentProject = 'inbox';
+  }
+  
+  writeTodos(data);
+  console.log(gradients.success(`${icons.remove} Project '${projectName}' removed successfully!`));
+}
+
+function switchProject(id) {
+  const data = readTodos() || DEFAULT_DATA;
+
+  if (!data.projects[id]) {
+    console.log(chalk.red(`${icons.remove} Project not found!`));
+    return;
+  }
+
+  data.settings.currentProject = id;
+  writeTodos(data);
+  console.log(gradients.success(`${icons.star} Switched to project '${data.projects[id].name}'!`));
+}
+
+function listProjects() {
+  const data = readTodos() || DEFAULT_DATA;
+  
+  console.clear();
+  showHeader();
+  
+  const table = new Table({
+    head: [
+      gradients.purple('ID'),
+      gradients.ocean('Project Name'),
+      gradients.sunset('Tasks'),
+      gradients.info('Current')
+    ],
+    style: {
+      head: [],
+      border: ['cyan']
+    }
+  });
+  
+  Object.values(data.projects).forEach(project => {
+    const isCurrent = data.settings.currentProject === project.id;
+    const currentMark = isCurrent ? chalk.green('★') : ' ';
+    
+    table.push([
+      chalk.cyan(project.id),
+      project.name,
+      chalk.gray(project.todos.length + ' tasks'),
+      currentMark
+    ]);
+  });
+  
+  console.log(table.toString());
+  console.log();
+  
+  // Show contextual command hints for project management
+  console.log('  ' + chalk.dim('💡 Quick commands:'));
+  console.log('  ' + chalk.dim('   todoterm pa "name"       - Add new project'));
+  console.log('  ' + chalk.dim('   todoterm ps <project>    - Switch to project'));
+  console.log('  ' + chalk.dim('   todoterm pr <project>    - Remove project'));
+  console.log('  ' + chalk.dim('   todoterm list            - View current project todos'));
+  console.log();
+  console.log('  ' + chalk.dim('ℹ️  Type "todoterm" for interactive menu or "todoterm --help" for all commands'));
+  console.log();
+}
+
 // CLI setup
 program
   .name('todoterm')
-  .description('Simple CLI todo list manager')
-  .version('1.0.0');
+  .description('Beautiful CLI todo list manager with project support')
+  .version('2.0.0');
 
 program
   .command('add')
@@ -429,6 +575,34 @@ program
   .description('Run in interactive mode')
   .action(async () => await interactiveMode());
 
+// Project management commands
+program
+  .command('project-add')
+  .alias('pa')
+  .description('Add a new project')
+  .argument('<name>', 'Project name')
+  .action(addProject);
+
+program
+  .command('project-remove')
+  .alias('pr')
+  .description('Remove a project')
+  .argument('<id>', 'Project ID')
+  .action(removeProject);
+
+program
+  .command('project-switch')
+  .alias('ps')
+  .description('Switch to a different project')
+  .argument('<id>', 'Project ID')
+  .action(switchProject);
+
+program
+  .command('projects')
+  .alias('pl')
+  .description('List all projects')
+  .action(listProjects);
+
 // Interactive mode for better UX
 async function interactiveMode() {
   showHeader();
@@ -438,13 +612,20 @@ async function interactiveMode() {
       type: 'list',
       name: 'action',
       message: gradients.primary('What would you like to do?'),
+      loop: false,
       choices: [
-        { name: `${icons.list} View todos`, value: 'list' },
-        { name: `${icons.add} Add new todo`, value: 'add' },
-        { name: `${icons.done} Mark todo as done`, value: 'done' },
-        { name: `${icons.remove} Remove a todo`, value: 'remove' },
-        { name: `${icons.clear} Clear all todos`, value: 'clear' },
-        { name: `${icons.rocket} Exit`, value: 'exit' }
+        { name: `[>]  View todos`, value: 'list' },
+        { name: `[+]  Add new todo`, value: 'add' },
+        { name: `[✓]  Mark todo as done`, value: 'done' },
+        { name: `[-]  Remove a todo`, value: 'remove' },
+        { name: `[×]  Clear all todos`, value: 'clear' },
+        new inquirer.Separator('--- Project Management ---'),
+        { name: `[*]  View all projects`, value: 'projects' },
+        { name: `[#]  Add new project`, value: 'project-add' },
+        { name: `[~]  Switch project`, value: 'project-switch' },
+        { name: `[!]  Remove project`, value: 'project-remove' },
+        new inquirer.Separator('--- ---'),
+        { name: `[.]  Exit`, value: 'exit' }
       ]
     }
   ]);
@@ -504,6 +685,60 @@ async function interactiveMode() {
       break;
     case 'clear':
       await clearTodos();
+      break;
+    case 'projects':
+      listProjects();
+      break;
+    case 'project-add':
+      const { projectName } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'projectName',
+          message: gradients.ocean('Enter project name:'),
+          validate: input => input.length > 0 || 'Please enter a project name'
+        }
+      ]);
+      addProject(projectName);
+      break;
+    case 'project-switch':
+      const data = readTodos();
+      const projectChoices = Object.values(data.projects).map(project => ({
+        name: `${project.name} (${project.id})`,
+        value: project.id
+      }));
+      const { projectId } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'projectId',
+          message: gradients.purple('Switch to which project?'),
+          choices: projectChoices
+        }
+      ]);
+      switchProject(projectId);
+      break;
+    case 'project-remove':
+      const dataForRemove = readTodos();
+      const removableProjects = Object.values(dataForRemove.projects)
+        .filter(project => project.id !== 'inbox')
+        .map(project => ({
+          name: `${project.name} (${project.id})`,
+          value: project.id
+        }));
+      
+      if (removableProjects.length === 0) {
+        console.log(gradients.warning('\nNo projects to remove (Inbox cannot be removed)!'));
+        break;
+      }
+      
+      const { removeProjectId } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'removeProjectId',
+          message: gradients.sunset('Which project to remove?'),
+          choices: removableProjects
+        }
+      ]);
+      removeProject(removeProjectId);
       break;
     case 'exit':
       console.log(gradients.success('\n✨ Thank you for using TodoTerm! ✨'));

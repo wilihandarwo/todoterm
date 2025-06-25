@@ -1,30 +1,55 @@
 # TodoTerm 📝
 
-✨ **The most beautiful CLI todo list manager for your terminal!** ✨
+✨ **The most beautiful CLI todo list manager with project management for your terminal!** ✨
 
-> Stand out from ordinary todo CLIs with stunning ASCII art, gradient colors, smooth animations, and an interactive interface that makes productivity a joy!
+> Stand out from ordinary todo CLIs with stunning ASCII art, gradient colors, smooth animations, powerful project management, and an intuitive interface that makes productivity a joy!
 
 ![TodoTerm Demo](https://via.placeholder.com/800x400/1a1a2e/00d2d3?text=TodoTerm+Beautiful+CLI)
+
+## 🆕 **What's New in v2.0**
+
+🎉 **Major Update!** TodoTerm now includes powerful project management capabilities:
+
+- 📂 **Project Organization** - Create separate projects for different areas of your life
+- 🏷️ **Smart Project IDs** - Human-readable IDs like `website-development` instead of random strings
+- 📱 **Contextual Help** - See relevant commands based on what you're viewing
+- 🎮 **Enhanced Interactive Menu** - Perfect alignment with ASCII symbols (no more emoji alignment issues!)
+- 🎨 **Cleaner Design** - Minimalist approach with less visual clutter
+- 💡 **Smart Command Discovery** - Always know what you can do next
 
 ## 🎨 **What Makes TodoTerm Special?**
 
 ### 🌟 **Visual Excellence**
 - 🎭 **ASCII Art Header** - Stunning figlet typography that commands attention
 - 🌈 **Gradient Colors** - Beautiful color transitions throughout the interface
-- 📦 **Bordered Boxes** - Elegant framed content for better readability
-- 📊 **Beautiful Tables** - Clean, professional task display with colors
+- 🎨 **Clean Minimalist Design** - Less clutter, more focus on your tasks
+- 📊 **Beautiful Tables** - Clean, professional task display with perfect alignment
 - ✨ **Loading Animations** - Smooth spinners for all actions
 - 🎉 **Celebration Effects** - Motivational feedback when completing tasks
 - 💎 **Premium Feel** - Every interaction feels polished and professional
 
-### 🚀 **Functionality**
-- ✅ **Interactive Mode** - Menu-driven interface for ease of use
+### 🚀 **Core Functionality**
+- ✅ **Interactive Mode** - Menu-driven interface with symbol-based navigation
 - ✅ **Smart Confirmations** - Prevent accidental data loss
 - ✅ **Task Statistics** - Track your productivity at a glance
 - ✅ **Persistent Storage** - Auto-saved in `~/.todoterm.json`
 - ✅ **Cross-platform** - Works on Mac, Linux, Windows
 - ✅ **Zero Dependencies** on external databases
 - ✅ **Lightning Fast** - Optimized performance
+
+### 📂 **Project Management (NEW!)**
+- 🏗️ **Multiple Projects** - Organize todos into separate projects
+- 📥 **Smart Inbox** - Default project for general todos
+- 🔄 **Easy Project Switching** - Switch between projects seamlessly
+- 🏷️ **Human-Friendly IDs** - Project IDs like `website-development` instead of random strings
+- 📋 **Project Overview** - See all projects and their task counts at a glance
+- 🎯 **Context Awareness** - Always know which project you're working in
+
+### 💡 **User Experience Improvements (NEW!)**
+- 🔍 **Contextual Help** - Relevant commands shown based on current screen
+- 🎮 **Enhanced Interactive Menu** - Perfect alignment with ASCII symbols
+- 📱 **Smart Command Discovery** - Never wonder what commands are available
+- 🚫 **No Infinite Scrolling** - Clean, predictable menu navigation
 
 ## 📦 Installation
 
@@ -82,44 +107,120 @@ todoterm rm 2
 # 🧹 Clear all todos (with dramatic confirmation)
 todoterm clear
 
+# 📂 PROJECT MANAGEMENT (NEW!)
+# View all projects with beautiful table
+todoterm projects
+todoterm pl
+
+# ➕ Add a new project with human-friendly ID
+todoterm project-add "Website Development"
+todoterm pa "Mobile App"
+
+# 🔄 Switch to a different project
+todoterm project-switch website-development
+todoterm ps mobile-app
+
+# 🗑️ Remove a project (with confirmation)
+todoterm project-remove website-development
+todoterm pr mobile-app
+
 # ❓ Show help
 todoterm --help
 ```
 
-## 🎬 **Visual Examples**
+## 📂 **Project Management Workflow**
+
+### Getting Started with Projects
+
+```bash
+# 1. View your current projects (starts with "Inbox")
+todoterm projects
+
+# 2. Create a new project for your work
+todoterm pa "Website Redesign"
+
+# 3. Switch to your new project
+todoterm ps website-redesign
+
+# 4. Add todos to the current project
+todoterm add "Design homepage mockup"
+todoterm add "Implement responsive layout"
+todoterm add "Optimize for mobile"
+
+# 5. View todos in current project
+todoterm list
+
+# 6. Switch between projects as needed
+todoterm ps inbox              # Back to inbox
+todoterm ps website-redesign   # Back to your project
+```
+
+### 💡 **Contextual Help System**
+
+TodoTerm shows you relevant commands based on what you're viewing:
+
+**When viewing todos:**
+```
+💡 Quick commands:
+   todoterm add "task"     - Add new todo
+   todoterm done <num>     - Mark todo as done
+   todoterm rm <num>      - Remove todo
+   todoterm projects      - View all projects
+   todoterm ps <project>  - Switch project
+
+ℹ️  Type "todoterm" for interactive menu or "todoterm --help" for all commands
+```
+
+**When viewing projects:**
+```
+💡 Quick commands:
+   todoterm pa "name"       - Add new project
+   todoterm ps <project>    - Switch to project
+   todoterm pr <project>    - Remove project
+   todoterm list            - View current project todos
+
+ℹ️  Type "todoterm" for interactive menu or "todoterm --help" for all commands
+```
+
+## 🍼 **Visual Examples**
 
 ### 🎭 Beautiful ASCII Header:
 ```
-████████╗ ██████╗ ██████╗  ██████╗ ████████╗███████╗██████╗ ███╗   ███╗
-╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗╚══██╔══╝██╔════╝██╔══██╗████╗ ████║
-   ██║   ██║   ██║██║  ██║██║   ██║   ██║   █████╗  ██████╔╝██╔████╔██║
-   ██║   ██║   ██║██║  ██║██║   ██║   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║
-   ██║   ╚██████╔╝██████╔╝╚██████╔╝   ██║   ███████╗██║  ██║██║ ╚═╝ ██║
+███████╭ ██████╭ ██████╭  ██████╭ ████████╭███████╭██████╭ ███╭   ███╭
+╚══█══╝██═══██╭██══██╭██═══██╭╚══██══╝██════╝██══██╭████╭ ████╭
+   ██╯   ██╯   ██╯██╯  ██╯██╯   ██╯   ██╯   █████╭  ██████═╝██═████═██╭
+   ██╯   ██╯   ██╯██╯  ██╯██╯   ██╯   ██╯   ██══╝  ██══██╭██╯╚██═╝██╭
+   ██╯   ╚██████═╝██████═╝╚██████═╝   ██╯   ███████╭██╯  ██╭██╯ ╚═╝ ██╭
    ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝    ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝
 
-   ╭───────────────────────────────────────────╮
-   │                                           │
-   │   ✨ Beautiful Terminal Todo Manager ✨   │
-   │   Made with ♥ by Fadli Wilihandarwo       │
-   │                                           │
-   ╰───────────────────────────────────────────╯
+  ✨ Beautiful Terminal Todo Manager ✨
+  Made with ♥ by Fadli Wilihandarwo
 ```
 
-### 📊 Elegant Task Table:
+### 📊 Clean Task Display with Project Context:
 ```
-┌──────────┬──────────────────────────────────────────────────┬────────────────────┐
-│ Status   │ Task                                             │ Created            │
-├──────────┼──────────────────────────────────────────────────┼────────────────────┤
-│ 1. ✓ Done│ Learn Node.js                                    │ Jun 25             │
-│ 2. ○ Pend│ Build amazing CLI app                            │ Jun 25             │
-└──────────┴──────────────────────────────────────────────────┴────────────────────┘
+  📂 Current Project: Website Development
+  3 tasks total
 
-   ╭──────────────────────────────────────────╮
-   │                                          │
-   │   🚀 Statistics                          │
-   │   Total: 2 │ Completed: 1 │ Pending: 1   │
-   │                                          │
-   ╰──────────────────────────────────────────╯
+┌───────────────┬─────────────────────────────────────────────┬────────────────────┐
+│ Status        │ Task                                        │ Created            │
+├───────────────┼─────────────────────────────────────────────┼────────────────────┤
+│ 1. ✓ Done     │ Design homepage mockup                      │ Jun 25             │
+│ 2. ○ Pending  │ Implement responsive layout                 │ Jun 25             │
+│ 3. ○ Pending  │ Optimize for mobile                         │ Jun 25             │
+└───────────────┴─────────────────────────────────────────────┴────────────────────┘
+
+  🚀 Statistics
+  Total: 3 │ Completed: 1 │ Pending: 2
+
+  💡 Quick commands:
+     todoterm add "task"     - Add new todo
+     todoterm done <num>     - Mark todo as done
+     todoterm rm <num>      - Remove todo
+     todoterm projects      - View all projects
+     todoterm ps <project>  - Switch project
+
+  ℹ️  Type "todoterm" for interactive menu or "todoterm --help" for all commands
 ```
 
 ### 🎉 Celebration Animations:
