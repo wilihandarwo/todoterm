@@ -4,8 +4,6 @@
 
 > Stand out from ordinary todo CLIs with stunning ASCII art, gradient colors, smooth animations, powerful project management, and an intuitive interface that makes productivity a joy!
 
-![TodoTerm Demo](https://via.placeholder.com/800x400/1a1a2e/00d2d3?text=TodoTerm+Beautiful+CLI)
-
 ## 🆕 **What's New in v2.0**
 
 🎉 **Major Update!** TodoTerm now includes powerful project management capabilities:
@@ -53,12 +51,12 @@
 
 ## 📦 Installation
 
-### 🎉 From npm (Live Now!)
+### From npm
 ```bash
 npm install -g todoterm
 ```
 
-> 🚀 **TodoTerm is now available on npm!** Install it globally with a single command and start organizing your tasks beautifully.
+> 🚀 **TodoTerm is available on npm!** Install it globally with a single command and start organizing your tasks beautifully.
 
 ### From source
 ```bash
@@ -261,18 +259,6 @@ node index.js
 # Link globally for testing
 npm link
 ```
-
-## 🚀 Publishing
-
-### To npm
-1. Create npm account: https://www.npmjs.com/signup
-2. Login: `npm login`
-3. Publish: `npm publish`
-
-### To Homebrew
-1. Publish to npm first
-2. Create a Homebrew formula (tap)
-3. Or submit to homebrew-core
 
 ## 🎨 **Technical Stack**
 
