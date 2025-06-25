@@ -1,6 +1,6 @@
 {
   "name": "todoterm",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Simple CLI todo list manager",
   "main": "index.js",
   "bin": {
