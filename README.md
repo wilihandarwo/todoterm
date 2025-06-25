@@ -28,10 +28,12 @@
 
 ## 📦 Installation
 
-### From npm (Coming Soon)
+### 🎉 From npm (Live Now!)
 ```bash
 npm install -g todoterm
 ```
+
+> 🚀 **TodoTerm is now available on npm!** Install it globally with a single command and start organizing your tasks beautifully.
 
 ### From source
 ```bash
